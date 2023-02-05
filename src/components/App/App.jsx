@@ -2,77 +2,65 @@ import { Button } from 'components/Button/Button';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { SearchBar } from 'components/Searchbar/SearchBar';
 import { getImages } from 'components/service/API';
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { AppBox } from './App.styled';
 import toast, { Toaster } from 'react-hot-toast';
 import { PuffLoader } from 'components/Loader/Loader';
 
-export class App extends Component {
-  state = {
-    query: '',
-    images: [],
-    page: 1,
-    loader: false,
-    showBtn: false,
-    scroll: null,
-  };
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loader, setLoader] = useState(false);
+  const [showBtn, setShowBtn] = useState(false);
 
-  async componentDidUpdate(_, { page, query }) {
-    if (
-      (page !== this.state.page || query !== this.state.query) &&
-      this.state.query.trim()
-    ) {
-      try {
-        this.setState({ loader: !this.state.loader });
-        await getImages(this.state.query, this.state.page).then(resp => {
-          if (resp.hits.length) {
-            this.setState(prevState => {
-              return {
-                images: [...prevState.images, ...resp.hits],
-                showBtn: this.state.page < Math.ceil(resp.totalHits / 12),
-              };
-            });
-          } else {
-            toast.error('Enter a more meaningful search term');
-          }
-        });
-      } catch (error) {
-        console.log(error);
-        toast.error("We're in trouble, sorry");
-      } finally {
-        this.setState({ loader: !this.state.loader });
+  useEffect(() => {
+    if (query.trim()) {
+      async function fetchImages() {
+        try {
+          setLoader(!loader);
+          await getImages(query, page).then(resp => {
+            if (resp.hits.length) {
+              setImages(prevState => {
+                return [...prevState, ...resp.hits];
+              });
+              setShowBtn(page < Math.ceil(resp.totalHits / 12));
+            } else {
+              toast.error('Enter a more meaningful search term');
+            }
+          });
+        } catch (error) {
+          console.log(error);
+          toast.error("We're in trouble, sorry");
+        } finally {
+          setLoader(false);
+        }
       }
+      fetchImages();
     }
-  }
+  }, [page, query]);
 
-  onGetRequest = ({ search }) => {
+  const onGetRequest = ({ search }) => {
     if (search.trim()) {
-      this.setState({
-        images: [],
-        page: 1,
-        query: search,
-      });
+      setImages([]);
+      setPage(1);
+      setQuery(search);
     } else {
       toast.error('Please enter any query');
     }
   };
 
-  nextPage = () => {
-    this.setState(pervState => {
-      return { page: pervState.page + 1 };
-    });
+  const nextPage = () => {
+    setPage(pervState => pervState + 1);
   };
 
-  render() {
-    const { images, showBtn, loader } = this.state;
-    return (
-      <AppBox>
-        <Toaster position="top-right" />
-        <SearchBar onSubmit={this.onGetRequest} />
-        <ImageGallery images={images} />
-        {showBtn && <Button nextPage={this.nextPage} />}
-        {loader && <PuffLoader />}
-      </AppBox>
-    );
-  }
-}
+  return (
+    <AppBox>
+      <Toaster position="top-right" />
+      <SearchBar onSubmit={onGetRequest} />
+      <ImageGallery images={images} />
+      {showBtn && <Button nextPage={nextPage} />}
+      {loader && <PuffLoader />}
+    </AppBox>
+  );
+};
