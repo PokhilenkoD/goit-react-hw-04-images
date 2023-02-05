@@ -18,7 +18,9 @@ export const App = () => {
     if (query.trim()) {
       async function fetchImages() {
         try {
-          setLoader(!loader);
+          setLoader(prevState => {
+            return !prevState;
+          });
           await getImages(query, page).then(resp => {
             if (resp.hits.length) {
               setImages(prevState => {
@@ -33,7 +35,9 @@ export const App = () => {
           console.log(error);
           toast.error("We're in trouble, sorry");
         } finally {
-          setLoader(false);
+          setLoader(prevState => {
+            return !prevState;
+          });
         }
       }
       fetchImages();
