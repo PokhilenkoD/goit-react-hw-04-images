@@ -7,18 +7,23 @@ const modalRoot = document.querySelector('#modal-root');
 
 export const Modal = ({ children, onClose }) => {
   useEffect(() => {
+    const closeWindowEsc = ev => {
+      if (ev.code === 'Escape') {
+        onClose();
+      }
+    };
     window.addEventListener('keydown', closeWindowEsc);
-  }, []);
+  }, [onClose]);
   useEffect(() => {
     return () => {
+      const closeWindowEsc = ev => {
+        if (ev.code === 'Escape') {
+          onClose();
+        }
+      };
       window.removeEventListener('keydown', closeWindowEsc);
     };
-  }, []);
-  const closeWindowEsc = ev => {
-    if (ev.code === 'Escape') {
-      onClose();
-    }
-  };
+  }, [onClose]);
 
   return createPortal(
     <Overlay onClick={onClose}>
