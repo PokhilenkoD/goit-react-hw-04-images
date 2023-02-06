@@ -13,14 +13,8 @@ export const Modal = ({ children, onClose }) => {
       }
     };
     window.addEventListener('keydown', closeWindowEsc);
-  }, [onClose]);
-  useEffect(() => {
+
     return () => {
-      const closeWindowEsc = ev => {
-        if (ev.code === 'Escape') {
-          onClose();
-        }
-      };
       window.removeEventListener('keydown', closeWindowEsc);
     };
   }, [onClose]);
